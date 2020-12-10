@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LazyCache;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using LazyCache;
 
 namespace Hacker_News_API.Controllers
 {
