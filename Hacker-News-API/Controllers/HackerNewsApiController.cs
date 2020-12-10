@@ -2,24 +2,34 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using Serilog;
 
 namespace Hacker_News_API.Controllers
-{
+{ 
     [Route("api/[controller]")]
     [ApiController]
     public class HackerNewsApiController : ControllerBase
     {
-        private readonly IAppCache cache;
+        private readonly IAppCache _cache;
 
         public HackerNewsApiController(IAppCache cache)
         {
-            this.cache = cache;
+            this._cache = cache;
         }
+
+        //    using (var client = new HttpClient())
+        //    {
+        //        HttpResponseMessage response = client.GetAsync(builder.Uri).Result;
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            UserModel userResult = response.Content.ReadAsAsync<UserModel>().Result;
+        //}
+        //    }
 
         //Wrap the call you want to cache in a lambda and use the cache:
 
         //[HttpGet]
-        //[Route("api/products")]
+        //[Route("api/values")]
         //public IEnumerable<T> Get()
         //{
         //    // define a func to get the products but do not Execute() it
@@ -27,7 +37,7 @@ namespace Hacker_News_API.Controllers
 
         //    // get the results from the cache based on a unique key, or 
         //    // execute the func and cache the results
-        //    var productsWithCaching = cache.GetOrAdd("HomeController.Get", productGetter);
+        //    var productsWithCaching = _cache.GetOrAdd("HomeController.Get", productGetter);
 
         //    return productsWithCaching;
         //}
