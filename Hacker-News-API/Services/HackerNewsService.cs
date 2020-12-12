@@ -49,7 +49,7 @@ namespace Hacker_News_API.Services
         /// <param name="configuration">Configuration</param>
         public HackerNewsService(IAppCache cache, IConfiguration configuration)
         {
-            this._cache = cache;
+            _cache = cache;
             var cacheAbsoluteTimeExpiration = short.Parse(configuration["Cache:AbsoluteTimeExpiration"]);
             var cacheSlidingTimeExpiration = short.Parse(configuration["Cache:SlidingTimeExpiration"]);
 
@@ -59,9 +59,9 @@ namespace Hacker_News_API.Services
                 SlidingExpiration = new TimeSpan(0, cacheSlidingTimeExpiration, 0)
             };
 
-            this._configuration = configuration;
-            this._getTopStoryIdsUri = _configuration["HackerNewsAPI:BestStoryIdsUri"];
-            this._getStoryUriFormat = _configuration["HackerNewsAPI:GetStoryUriFormat"];
+            _configuration = configuration;
+            _getTopStoryIdsUri = _configuration["HackerNewsAPI:BestStoryIdsUri"];
+            _getStoryUriFormat = _configuration["HackerNewsAPI:GetStoryUriFormat"];
         }
 
         /// <summary>
