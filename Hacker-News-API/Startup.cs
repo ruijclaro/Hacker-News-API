@@ -1,4 +1,5 @@
 ﻿using Hacker_News_API.Services;
+using LazyCache;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -20,10 +21,12 @@ namespace Hacker_News_API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddSingleton<IHackerNewsService>(new HackerNewsService(null, Configuration));
 
             // Using LazyCache to cache information from Hacker News Service
             services.AddLazyCache();
+            //services.AddSingleton<IHackerNewsService>(new HackerNewsService( services. , Configuration));
+            services.AddSingleton<IHackerNewsService>(sp => new HackerNewsService(sp.GetService<IAppCache>(), Configuration));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
