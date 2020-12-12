@@ -11,6 +11,11 @@ namespace Hacker_News_API
             CreateWebHostBuilder(args).Build().Run();
         }
 
+        /// <summary>
+        /// Use Serilog for logging
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()

@@ -1,7 +1,8 @@
-﻿using System;
-
-namespace Hacker_News_API.Models
+﻿namespace Hacker_News_API.Models
 {
+    /// <summary>
+    /// Model for HackerNews API
+    /// </summary>
     public class HackerNewsModel
     {
         public string By { get; set; }

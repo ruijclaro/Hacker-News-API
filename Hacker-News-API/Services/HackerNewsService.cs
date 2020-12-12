@@ -39,25 +39,14 @@ namespace Hacker_News_API.Services
         private readonly string _getTopStoryIdsUri;
         private readonly string _getStoryUriFormat;
         private readonly MemoryCacheEntryOptions _cacheEntryOptions;
-        //private readonly short _cacheAbsoluteTimeExpiration;
-        //private readonly short _cacheSlidingTimeExpiration;
 
-        //Wrap the call you want to cache in a lambda and use the cache:
-
-        //[HttpGet]
-        //[Route("api/values")]
-        //public IEnumerable<T> Get()
-        //{
-        //    // define a func to get the products but do not Execute() it
-        //    Func<IEnumerable<T>> productGetter = () => dbContext.Products.ToList();
-
-        //    // get the results from the cache based on a unique key, or 
-        //    // execute the func and cache the results
-        //    var productsWithCaching = _cache.GetOrAdd("HomeController.Get", productGetter);
-
-        //    return productsWithCaching;
-        //}
-
+        /// <summary>
+        /// Initial Constructor
+        /// Read from AppSettings Cache Expiration Policy
+        /// Read from AppSetting NewsHacker URIs
+        /// </summary>
+        /// <param name="cache">Cache</param>
+        /// <param name="configuration">Configuration</param>
         public HackerNewsService(IAppCache cache, IConfiguration configuration)
         {
             this._cache = cache;
@@ -72,9 +61,13 @@ namespace Hacker_News_API.Services
 
             this._configuration = configuration;
             this._getTopStoryIdsUri = _configuration["HackerNewsAPI:BestStoryIdsUri"];
-            this._getStoryUriFormat = _configuration["HackerNewsAPI:GetStoryUriFormat"]; 
+            this._getStoryUriFormat = _configuration["HackerNewsAPI:GetStoryUriFormat"];
         }
 
+        /// <summary>
+        /// Get Top Stories Ids
+        /// </summary>
+        /// <returns>Ids</returns>
         private async Task<IEnumerable<string>> GetBestStoryIds()
         {
             using (var client = new HttpClient())
@@ -92,13 +85,23 @@ namespace Hacker_News_API.Services
             }
         }
 
+        /// <summary>
+        /// Transform UnixTimeStamp to DateTime
+        /// </summary>
+        /// <param name="unixTimeStamp"></param>
+        /// <returns>DateTime</returns>
         private static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
         {
-            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
-            return dtDateTime;
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return dateTime;
         }
 
+        /// <summary>
+        /// Get HackerNews Story
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>HackerNewsModel</returns>
         private async Task<HackerNewsModel> GetHackerNewsStory(string id)
         {
             using (var client = new HttpClient())
@@ -108,30 +111,37 @@ namespace Hacker_News_API.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    // Log the error
                     Log.Error("Error returnig Data from API");
                     throw new ApplicationException();
                 }
-                var ret = await response.Content.ReadAsAsync<HackerNewsModel>();
-
-                return ret;
+                var hackerNewsStory = await response.Content.ReadAsAsync<HackerNewsModel>();
+                return hackerNewsStory;
             }
         }
 
-        
-
+        /// <summary>
+        /// Read List of Stories
+        /// </summary>
+        /// <param name="ids">Ids of each story</param>
+        /// <returns>List of Stories</returns>
         private async Task<IEnumerable<Story>> GetStories(IEnumerable<string> ids)
         {
-            var list = new List<Story>();
+            var listOfStories = new List<Story>();
             foreach (var id in ids)
             {
-
+                // Define a Lambda Expression to get the Data either from cache or Service if cache if not available for the Story with that Id
                 var story = await _cache.GetOrAddAsync($"story: {id}", () => GetStory(id), _cacheEntryOptions);
-
-                list.Add(story);
+                listOfStories.Add(story);
             }
-            return list;
+            return listOfStories;
         }
 
+        /// <summary>
+        /// Map Properties from HackerNews Story to this service output
+        /// </summary>
+        /// <param name="id">Id of HackerNews Story</param>
+        /// <returns>Story</returns>
         private async Task<Story> GetStory(string id)
         {
             var hackerNewsStory = await GetHackerNewsStory(id);
@@ -147,10 +157,18 @@ namespace Hacker_News_API.Services
             return story;
         }
 
+        /// <summary>
+        /// Read Best Stories, either from cache or from HackerNews Service
+        /// </summary>
+        /// <param name="numberOfStories"></param>
+        /// <returns>Stories</returns>
         public async Task<IEnumerable<Story>> GetBestStories(int numberOfStories)
         {
+            // Define a Lambda Expression to get the Data either from cache or Service if cache if not available all the Stories
             var ids = await _cache.GetOrAddAsync($"storyIds", GetBestStoryIds, _cacheEntryOptions);
+            // Show only the x number of Best Stories based on configuration
             var firstIds = ids.Take(numberOfStories);
+            // Order Stories Descending by Story Score
             var stories = (await GetStories(firstIds)).OrderByDescending(p => p.Score);
 
             return stories;

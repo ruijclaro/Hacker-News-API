@@ -24,7 +24,9 @@ namespace Hacker_News_API
 
             // Using LazyCache to cache information from Hacker News Service
             services.AddLazyCache();
-            //services.AddSingleton<IHackerNewsService>(new HackerNewsService( services. , Configuration));
+
+            // Add by dependency injection a Singleton for HackerNewsService
+            // Required to use cache regardless of callers
             services.AddSingleton<IHackerNewsService>(sp => new HackerNewsService(sp.GetService<IAppCache>(), Configuration));
 
         }
