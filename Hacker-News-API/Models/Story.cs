@@ -28,7 +28,7 @@ namespace Hacker_News_API.Models
         public string PostedBy { get; set; }
         public DateTime Time { get; set; }
         public int Score { get; set; }
-        public string CommentCount { get; set; }
+        public int CommentCount { get; set; }
 
     }
 }

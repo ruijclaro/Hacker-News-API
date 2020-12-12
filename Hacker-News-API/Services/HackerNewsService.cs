@@ -86,7 +86,7 @@ namespace Hacker_News_API.Services
             return dtDateTime;
         }
 
-        private async Task<Tuple<HackerNewsModel, string>> GetHackerNesStory(string id)
+        private async Task<HackerNewsModel> GetHackerNesStory(string id)
         {
             using (var client = new HttpClient())
             {
@@ -100,26 +100,26 @@ namespace Hacker_News_API.Services
                 }
                 var ret = await response.Content.ReadAsAsync<HackerNewsModel>();
 
-                return new Tuple<HackerNewsModel, string>(ret, requestUri);
+                return ret;
             }
         }
+
+        
 
         private async Task<IEnumerable<Story>> GetStories(IEnumerable<string> ids)
         {
             var list = new List<Story>();
             foreach (var id in ids)
             {
-                var tuple = await GetHackerNesStory(id);
-                var hns = tuple.Item1;
-
+                var hackerNewsStory = await GetHackerNesStory(id);
                 var story = new Story
                 {
-                    //CommentCount = hns.
-                    PostedBy = hns.By,
-                    Score = hns.Score,
-                    Time = UnixTimeStampToDateTime(hns.Time),
-                    Title = hns.Title,
-                    Uri = tuple.Item2,
+                    CommentCount = hackerNewsStory.Descendants,
+                    PostedBy = hackerNewsStory.By,
+                    Score = hackerNewsStory.Score,
+                    Time = UnixTimeStampToDateTime(hackerNewsStory.Time),
+                    Title = hackerNewsStory.Title,
+                    Uri = hackerNewsStory.Url
                 };
                 list.Add(story);
             }
