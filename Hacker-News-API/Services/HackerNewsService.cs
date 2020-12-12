@@ -1,5 +1,6 @@
 ﻿using Hacker_News_API.Models;
 using LazyCache;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using System;
@@ -37,8 +38,9 @@ namespace Hacker_News_API.Services
         private readonly IConfiguration _configuration;
         private readonly string _getTopStoryIdsUri;
         private readonly string _getStoryUriFormat;
-        private readonly short _cacheAbsoluteTimeExpiration;
-        private readonly short _cacheSlidingTimeExpiration;
+        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        //private readonly short _cacheAbsoluteTimeExpiration;
+        //private readonly short _cacheSlidingTimeExpiration;
 
         //Wrap the call you want to cache in a lambda and use the cache:
 
@@ -59,8 +61,14 @@ namespace Hacker_News_API.Services
         public HackerNewsService(IAppCache cache, IConfiguration configuration)
         {
             this._cache = cache;
-            _cacheAbsoluteTimeExpiration = short.Parse(configuration["Cache:AbsoluteTimeExpiration"]);
-            _cacheSlidingTimeExpiration = short.Parse(configuration["Cache:SlidingTimeExpiration"]);
+            var cacheAbsoluteTimeExpiration = short.Parse(configuration["Cache:AbsoluteTimeExpiration"]);
+            var cacheSlidingTimeExpiration = short.Parse(configuration["Cache:SlidingTimeExpiration"]);
+
+            _cacheEntryOptions = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = new TimeSpan(0, cacheAbsoluteTimeExpiration, 0),
+                SlidingExpiration = new TimeSpan(0, cacheSlidingTimeExpiration, 0)
+            };
 
             this._configuration = configuration;
             this._getTopStoryIdsUri = _configuration["HackerNewsAPI:BestStoryIdsUri"];
@@ -117,21 +125,8 @@ namespace Hacker_News_API.Services
             foreach (var id in ids)
             {
 
+                var story = await _cache.GetOrAddAsync($"story: {id}", () => GetStory(id), _cacheEntryOptions);
 
-                /*
-                 cache.GetOrAdd("some-key", entry => {
-    var thingWithAnExpiryDate = GetTheThingToCache();
-    DateTimeOffset expiryDate = thingWithAnExpiryDate.Expires;
-    // can set expiry date using a DateTimeOffset or a TimeSpan from now.
-    entry.SetAbsoluteExpiration(expiryDate);
-    return thingWithAnExpiryDate;
-});
-                 */
-
-                //_cache.GetOrAdd(,  _cache.GetOrAdd("HomeController.Get", productGetter););
-                var story = await _cache.GetOrAdd($"story: {id}",  () =>  GetStory(id));
-
-//                Story story = await GetStory(id);
                 list.Add(story);
             }
             return list;
@@ -154,7 +149,7 @@ namespace Hacker_News_API.Services
 
         public async Task<IEnumerable<Story>> GetBestStories(int numberOfStories)
         {
-            var ids = await GetBestStoryIds();
+            var ids = await _cache.GetOrAddAsync($"storyIds", GetBestStoryIds, _cacheEntryOptions);
             var firstIds = ids.Take(numberOfStories);
             var stories = (await GetStories(firstIds)).OrderByDescending(p => p.Score);
 
