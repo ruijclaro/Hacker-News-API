@@ -5,3 +5,6 @@ dotnet_analyzer_diagnostic.category-CodeQuality.severity = none
 
 # IDE0060: Remove unused parameter
 dotnet_diagnostic.IDE0060.severity = none
+
+# CS0169: The field 'HackerNewsService._cache' is never used
+dotnet_diagnostic.CS0169.severity = none

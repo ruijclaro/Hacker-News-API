@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 // 25373105,25381325,25375148,25372987,25385137,25376849,25389219,25368379,25388353,25383485,25386482,25366301,25381397, ... 
 // ]
 
-
 //The details for an individual story ID can be retrieved from this URI:
 //https://hacker-news.firebaseio.com/v0/item/21233041.json (in this case for the story with ID 21233041)
 //{"by":"ismaildonmez","descendants":588,"id":21233041,"kids":[21233229,21233577,21235077,21233633,21233159,21233523,21233181,21233289,21233377,21233166,21233206,21233208,21233255,...],
